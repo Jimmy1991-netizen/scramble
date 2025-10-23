@@ -9,21 +9,21 @@
         font-family: Arial, sans-serif;
         background-color: #e8f3ff;
         margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        padding: 20px 0;
         min-height: 100vh;
         font-size: 22px;
+        overflow-y: auto; /* ✅ Allow vertical scrolling */
+        display: block;   /* ✅ Prevent flex centering that blocked scroll */
     }
 
     .container {
         background: white;
-        padding: 40px;
+        padding: 40px 20px;
         border-radius: 25px;
         box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-        width: 95%;
+        width: 90%;
         max-width: 650px;
+        margin: 0 auto 50px auto; /* ✅ Add bottom margin for scrolling space */
         text-align: center;
     }
 
@@ -45,7 +45,7 @@
         border: 2px solid #0077cc;
         font-size: 22px;
         text-align: center;
-        text-transform: uppercase; /* All caps */
+        text-transform: uppercase;
     }
 
     button {
@@ -74,7 +74,7 @@
         letter-spacing: 5px;
         color: #222;
         margin: 25px 0;
-        text-transform: uppercase; /* Display scrambled words in all caps */
+        text-transform: uppercase;
     }
 
     .clue {
@@ -205,6 +205,9 @@ function showScrambledWord() {
     document.getElementById('feedback').innerText = '';
     document.getElementById('feedback').dataset.answered = "false";
     document.getElementById('currentItem').innerText = current + 1;
+
+    // ✅ Auto-scroll to top of container when next word loads
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function shuffle(str) {
@@ -246,9 +249,9 @@ function endGame() {
     document.getElementById('finish').classList.remove('hidden');
     document.getElementById('finalScore').innerText = score;
     document.getElementById('finalMax').innerText = maxScore;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ✅ Restart without clearing stored words/clues
 function restartGame() {
     score = 0;
     current = 0;
@@ -263,4 +266,3 @@ function restartGame() {
 
 </body>
 </html>
-
