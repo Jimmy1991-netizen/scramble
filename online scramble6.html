@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scrambled Word Game</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #e8f3ff;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-size: 22px;
+    }
+
+    .container {
+        background: white;
+        padding: 40px;
+        border-radius: 25px;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        width: 95%;
+        max-width: 650px;
+        text-align: center;
+    }
+
+    h2 {
+        color: #0066cc;
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+
+    p {
+        font-size: 22px;
+    }
+
+    input[type="text"] {
+        padding: 15px;
+        width: 90%;
+        margin: 10px 0;
+        border-radius: 10px;
+        border: 2px solid #0077cc;
+        font-size: 22px;
+        text-align: center;
+        text-transform: uppercase; /* All caps */
+    }
+
+    button {
+        background-color: #0077cc;
+        color: white;
+        border: none;
+        padding: 15px 25px;
+        border-radius: 12px;
+        font-size: 22px;
+        cursor: pointer;
+        margin: 8px;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background-color: #005fa3;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .scrambled {
+        font-size: 48px;
+        font-weight: bold;
+        letter-spacing: 5px;
+        color: #222;
+        margin: 25px 0;
+        text-transform: uppercase; /* Display scrambled words in all caps */
+    }
+
+    .clue {
+        font-style: italic;
+        color: #444;
+        font-size: 26px;
+        margin-bottom: 15px;
+    }
+
+    .correct {
+        color: green;
+        font-weight: bold;
+        font-size: 26px;
+    }
+
+    .wrong {
+        color: red;
+        font-weight: bold;
+        font-size: 26px;
+    }
+
+    .scoreboard {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #0077cc;
+        font-size: 26px;
+    }
+
+    .itemTracker {
+        margin-top: 10px;
+        color: #555;
+        font-size: 24px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div id="setup">
+        <h2>Word & Clue Storage</h2>
+        <p>Enter word and its clue, then click <b>"Store"</b>. When done, click <b>"Done"</b> to start the game.</p>
+        <input type="text" id="wordInput" placeholder="Enter word">
+        <input type="text" id="clueInput" placeholder="Enter clue">
+        <br>
+        <button onclick="storeWord()">Store</button>
+        <button onclick="startGame()">Done</button>
+        <p id="storedWords"></p>
+    </div>
+
+    <div id="game" class="hidden">
+        <h2>Scrambled Word Game</h2>
+
+        <div class="scoreboard">
+            Score: <span id="score">0</span> /
+            <span id="maxScore">0</span>
+        </div>
+        <div class="itemTracker">
+            Word <span id="currentItem">0</span> of <span id="totalItems">0</span>
+        </div>
+
+        <p class="scrambled" id="scrambledWord"></p>
+        <p class="clue" id="clue"></p>
+        <input type="text" id="answerInput" placeholder="TYPE YOUR ANSWER HERE">
+        <br>
+        <button onclick="checkAnswer()">Submit</button>
+        <button onclick="nextWord()">Next</button>
+        <p id="feedback"></p>
+    </div>
+
+    <div id="finish" class="hidden">
+        <h2>🎉 Congratulations!</h2>
+        <p>You have completed all the words!</p>
+        <p style="font-size: 28px;">Final Score: <span id="finalScore"></span> / <span id="finalMax"></span></p>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+</div>
+
+<script>
+let words = [];
+let clues = [];
+let current = 0;
+let score = 0;
+let maxScore = 0;
+
+function storeWord() {
+    const word = document.getElementById('wordInput').value.trim().toUpperCase();
+    const clue = document.getElementById('clueInput').value.trim();
+
+    if (word && clue) {
+        words.push(word);
+        clues.push(clue);
+        document.getElementById('storedWords').innerText =
+            `Stored Words: ${words.join(', ')}`;
+        document.getElementById('wordInput').value = '';
+        document.getElementById('clueInput').value = '';
+    } else {
+        alert("Please enter both word and clue.");
+    }
+}
+
+function startGame() {
+    if (words.length === 0) {
+        alert("Please store at least one word first!");
+        return;
+    }
+
+    maxScore = words.length;
+    score = 0;
+    current = 0;
+
+    document.getElementById('maxScore').innerText = maxScore;
+    document.getElementById('score').innerText = score;
+    document.getElementById('totalItems').innerText = maxScore;
+
+    document.getElementById('setup').classList.add('hidden');
+    document.getElementById('finish').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+
+    showScrambledWord();
+}
+
+function showScrambledWord() {
+    const word = words[current];
+    const scrambled = shuffle(word.toUpperCase());
+    document.getElementById('scrambledWord').innerText = scrambled;
+    document.getElementById('clue').innerText = "Clue: " + clues[current];
+    document.getElementById('answerInput').value = '';
+    document.getElementById('feedback').innerText = '';
+    document.getElementById('feedback').dataset.answered = "false";
+    document.getElementById('currentItem').innerText = current + 1;
+}
+
+function shuffle(str) {
+    const arr = str.split('');
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.join('');
+}
+
+function checkAnswer() {
+    const answer = document.getElementById('answerInput').value.trim().toUpperCase();
+    const correct = words[current].toUpperCase();
+
+    if (answer === correct) {
+        document.getElementById('feedback').innerHTML = "<span class='correct'>✅ CORRECT!</span>";
+        if (document.getElementById('feedback').dataset.answered !== "true") {
+            score++;
+            document.getElementById('score').innerText = score;
+            document.getElementById('feedback').dataset.answered = "true";
+        }
+    } else {
+        document.getElementById('feedback').innerHTML = "<span class='wrong'>❌ TRY AGAIN!</span>";
+    }
+}
+
+function nextWord() {
+    if (current < words.length - 1) {
+        current++;
+        showScrambledWord();
+    } else {
+        endGame();
+    }
+}
+
+function endGame() {
+    document.getElementById('game').classList.add('hidden');
+    document.getElementById('finish').classList.remove('hidden');
+    document.getElementById('finalScore').innerText = score;
+    document.getElementById('finalMax').innerText = maxScore;
+}
+
+// ✅ Restart without clearing stored words/clues
+function restartGame() {
+    score = 0;
+    current = 0;
+
+    document.getElementById('score').innerText = score;
+    document.getElementById('finish').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+
+    showScrambledWord();
+}
+</script>
+
+</body>
+</html>
